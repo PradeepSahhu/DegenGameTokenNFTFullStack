@@ -9,6 +9,7 @@ import DegenABI from "../artifacts/contracts/DegenTokenGame.sol/DegenERC20.json"
 import IpfsToArray from "./Functionality/resIPFS";
 import MintAndBurnInput from "./components/MintAndBurnInput";
 import TransferFriend from "./components/TransferFriend";
+import BurnToken from "./components/BurnToken";
 // bg-gradient-to-r from-teal-600 via-blue-600 to-indigo-600
 export default function Home() {
   const [connected, setConnected] = useState(false);
@@ -16,6 +17,7 @@ export default function Home() {
   const [mintAndBurnCondition, setmintAndBurnCondition] = useState(false);
   const [transferFriendCondition, setTransferFriendCondition] = useState(false);
   const [boughtCondition, setBoughtCondition] = useState(false);
+  const [burnCondition, setBurnCondition] = useState(false);
   const [nftCollection, setNftCollection] = useState([]);
   const [redeemNFT, setRedeemNFT] = useState(false);
   const [boughtNFT, setBoughtNFT] = useState([]);
@@ -28,6 +30,7 @@ export default function Home() {
   const [amount, setAmount] = useState();
   const [transferAddress, setTransferAddress] = useState();
   const [transAmount, setTransAmount] = useState();
+  const [burnAmount, setBurnAmount] = useState();
 
   const urls = [
     "https://ipfs.io/ipfs/QmcWWFLLWf4fUwHPbqhJJupvPXUW4p6iS3jUivKiG7H27B", //robot
@@ -130,6 +133,16 @@ export default function Home() {
           transferAddress,
           parseInt(transAmount)
         );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const burnMyToken = async () => {
+    try {
+      if (degenContract) {
+        const res = await degenContract.burnToken(burnAmount);
       }
     } catch (error) {
       console.log(error);
@@ -272,7 +285,7 @@ export default function Home() {
           </div>
           <div className="flex justify-center">
             <button
-              onClick={() => mintAndBurnTokens()}
+              onClick={() => setBurnCondition(!burnCondition)}
               className="bg-gradient-to-r from-teal-600 via-blue-600 to-indigo-600 px-8 pb-2.5 pt-3 text-xs font-medium uppercase leading-normal rounded-2xl"
             >
               Burn DGN Tokens
@@ -297,6 +310,9 @@ export default function Home() {
           setTransferAddress={setTransferAddress}
           transFriend={transFriend}
         />
+      )}
+      {burnCondition && (
+        <BurnToken setBurnAmount={setBurnAmount} burnMyToken={burnMyToken} />
       )}
       {boughtCondition && <BoughtItems />}
 
