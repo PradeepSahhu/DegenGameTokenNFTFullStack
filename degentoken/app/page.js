@@ -190,17 +190,25 @@ export default function Home() {
 
   const mintAndBurnTokens = async () => {
     setTransferFriendCondition(false);
+    setBoughtCondition(false);
 
     setmintAndBurnCondition(!mintAndBurnCondition);
   };
 
   const transferToFriend = async () => {
     setmintAndBurnCondition(false);
+    setBurnCondition(false);
     setTransferFriendCondition(!transferFriendCondition);
   };
 
   const displayBoughtNFTs = async () => {
     setBoughtCondition(!boughtCondition);
+  };
+
+  const burntokenFunc = async () => {
+    setTransferFriendCondition(false);
+    setmintAndBurnCondition(false);
+    setBurnCondition(!burnCondition);
   };
 
   const boughtItems = async () => {
@@ -286,7 +294,7 @@ export default function Home() {
           </div>
           <div className="flex justify-center">
             <button
-              onClick={() => setBurnCondition(!burnCondition)}
+              onClick={() => burntokenFunc()}
               className="bg-gradient-to-r from-teal-600 via-blue-600 to-indigo-600 px-8 pb-2.5 pt-3 text-xs font-medium uppercase leading-normal rounded-2xl"
             >
               Burn DGN Tokens
