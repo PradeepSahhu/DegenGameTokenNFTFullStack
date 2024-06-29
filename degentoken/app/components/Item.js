@@ -4,6 +4,7 @@ export default function Item({
   itemDescription,
   itemPrice,
   mintNFTFunction,
+  URI,
 }) {
   return (
     <div className="inline-block w-96">
@@ -48,9 +49,7 @@ export default function Item({
             className="rounded-2xl  px-8 pb-2.5 pt-3 text-xs font-medium uppercase leading-normal text-white shadow-primary-3  bg-gradient-to-r from-red-600 to-blue-700 shadow-xl shadow-slate-900"
             data-twe-ripple-init
             data-twe-ripple-color="light"
-            onClick={() =>
-              mintNFTFunction(itemName, itemDescription, itemPrice, itemSrc)
-            }
+            onClick={() => mintNFTFunction(URI, itemPrice)}
           >
             Redeem NFT
           </button>

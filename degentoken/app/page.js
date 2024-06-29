@@ -4,6 +4,9 @@ import Item from "./components/Item";
 import BoughtItem from "./components/BoughtItem";
 import { useState, useEffect } from "react";
 import fetchMultipleData from "./Functionality/ifpsFetch";
+import { ethers } from "ethers";
+import DegenABI from "../artifacts/contracts/DegenTokenGame.sol/DegenERC20.json";
+import IpfsToArray from "./Functionality/resIPFS";
 // bg-gradient-to-r from-teal-600 via-blue-600 to-indigo-600
 export default function Home() {
   const [connected, setConnected] = useState(false);
@@ -13,6 +16,13 @@ export default function Home() {
   const [boughtCondition, setBoughtCondition] = useState(false);
   const [nftCollection, setNftCollection] = useState([]);
   const [redeemNFT, setRedeemNFT] = useState(false);
+  const [boughtNFT, setBoughtNFT] = useState([]);
+
+  // -------------------------------
+  const [ethWindow, setEthWindow] = useState(null);
+  const [accounts, setAccounts] = useState(null);
+  const [degenContract, setDegenContract] = useState(null);
+  const [bal, setBal] = useState();
 
   const urls = [
     "https://ipfs.io/ipfs/QmcWWFLLWf4fUwHPbqhJJupvPXUW4p6iS3jUivKiG7H27B", //robot
@@ -35,6 +45,60 @@ export default function Home() {
   //     .then((response) => response.json())
   //     .then((data) => console.log(data));
   // }
+
+  const contractAddress = "0xD3F2cc1f2912714Ce1c332A40fE0D35f6F53abA9";
+
+  const initialize = async () => {
+    if (window.ethereum) {
+      console.log("Metamask is installed");
+      setEthWindow(window.ethereum);
+    }
+
+    if (ethWindow) {
+      const accountsArray = await ethWindow.request({ method: "eth_accounts" });
+      setAccounts(accountsArray);
+    }
+    ConnectToMetamask();
+  };
+
+  const ConnectToMetamask = async () => {
+    if (ethWindow) {
+      const accounts = ethWindow.request({ method: "eth_requestAccounts" });
+      setAccounts(accounts);
+      setConnected(true);
+    }
+
+    ConnectToContract();
+  };
+
+  const ConnectToContract = async () => {
+    try {
+      console.log("The Degen Abi is : " + DegenABI.abi);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const degenContract = new ethers.Contract(
+        contractAddress,
+        DegenABI.abi,
+        signer
+      );
+      console.log(degenContract);
+      setDegenContract(degenContract);
+      console.log(degenContract);
+    } catch (error) {
+      console.log("can't connect with the contract");
+    }
+  };
+
+  const getTokenBalance = async () => {
+    try {
+      if (degenContract) {
+        const bal = await degenContract.checkingBalance();
+        setBal(parseInt(bal));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   function MintAndBurnInput() {
     return (
@@ -66,8 +130,9 @@ export default function Home() {
   function BoughtItems() {
     return (
       <div className="mt-10 col-start-1 col-end-4 bg-opacity-90 p-10 justify-center space-x-8 space-y-5">
-        {nftCollection.map((eachItem) => (
+        {boughtNFT.map((eachItem, index) => (
           <BoughtItem
+            key={index}
             itemName={eachItem.name}
             itemDescription={eachItem.description}
             itemSrc={getImage(eachItem.image)}
@@ -119,6 +184,7 @@ export default function Home() {
 
   const mintAndBurnTokens = async () => {
     setTransferFriendCondition(false);
+    getTokenBalance();
 
     setmintAndBurnCondition(!mintAndBurnCondition);
   };
@@ -128,14 +194,32 @@ export default function Home() {
     setTransferFriendCondition(!transferFriendCondition);
   };
 
-  const boughtItems = async () => {
+  const displayBoughtNFTs = async () => {
     setBoughtCondition(!boughtCondition);
   };
 
-  const mintNFTs = async (name, description, price, imageSrc) => {
-    console.log(
-      `Name is ${name} and ${description} and ${price} and ${imageSrc}`
-    );
+  const boughtItems = async () => {
+    try {
+      if (degenContract) {
+        const res = await degenContract.getMintedNFT();
+        const boughtNFTs = await IpfsToArray(res);
+        console.log(boughtNFTs);
+        setBoughtNFT(boughtNFTs);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const mintNFTs = async (URI, price) => {
+    console.log(`URI is ${URI} and ${price}`);
+    try {
+      if (degenContract) {
+        const res = await degenContract.redeemTokens(URI, price);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const showMarketPlace = () => {
@@ -145,10 +229,14 @@ export default function Home() {
 
   useEffect(() => {
     async function Operation() {
-      fetchMultipleData(urls, setFunc);
+      await initialize();
+      await ConnectToContract();
+      await boughtItems();
+      await fetchMultipleData(urls, setFunc);
+      await getTokenBalance();
     }
     Operation();
-  }, []);
+  }, [bal]);
 
   return (
     <div className="bg-black">
@@ -158,7 +246,10 @@ export default function Home() {
             <h1 className="text-4xl">Account</h1>
           </div>
           <div className="col-span-4 flex flex-col items-center my-10">
-            <button className="rounded-2xl p-5 pt-3 pb-3.5 bg-rose-800 shadow-xl shadow-zinc-800">
+            <button
+              className="rounded-2xl p-5 pt-3 pb-3.5 bg-rose-800 shadow-xl shadow-zinc-800"
+              onClick={ConnectToMetamask}
+            >
               {connected ? "Connected" : "Connect To metamask"}
             </button>
           </div>
@@ -166,7 +257,7 @@ export default function Home() {
             <p> Account Address : 0x161aBA4657174De9a36C3Ee71bC8163118d88d43</p>
           </div>
           <div className="text-xl col-span-3 flex justify-end mr-5">
-            Balance : 100 DGN Tokens
+            Balance : {bal ? bal : "xxx"} DGN Tokens
           </div>
         </div>
       </div>
@@ -198,7 +289,7 @@ export default function Home() {
           </div>
           <div className="flex justify-center">
             <button
-              onClick={() => boughtItems()}
+              onClick={() => displayBoughtNFTs()}
               className="bg-gradient-to-r from-teal-600 via-blue-600 to-indigo-600 px-8 pb-2.5 pt-3 text-xs font-medium uppercase leading-normal rounded-2xl"
             >
               View Bought NFTs
@@ -234,14 +325,15 @@ export default function Home() {
             </p>
           </div>
           {showMarket &&
-            nftCollection.map((eachItem) => (
+            nftCollection.map((eachItem, index) => (
               <Item
-                key={eachItem.name}
+                key={index}
                 itemName={eachItem.name}
                 itemDescription={eachItem.description}
                 itemSrc={getImage(eachItem.image)}
                 itemPrice={eachItem.price}
                 mintNFTFunction={mintNFTs}
+                URI={urls[index]}
               />
             ))}
           ;
