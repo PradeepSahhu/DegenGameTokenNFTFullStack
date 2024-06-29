@@ -7,6 +7,8 @@ import fetchMultipleData from "./Functionality/ifpsFetch";
 import { ethers } from "ethers";
 import DegenABI from "../artifacts/contracts/DegenTokenGame.sol/DegenERC20.json";
 import IpfsToArray from "./Functionality/resIPFS";
+import MintAndBurnInput from "./components/MintAndBurnInput";
+import TransferFriend from "./components/TransferFriend";
 // bg-gradient-to-r from-teal-600 via-blue-600 to-indigo-600
 export default function Home() {
   const [connected, setConnected] = useState(false);
@@ -23,6 +25,9 @@ export default function Home() {
   const [accounts, setAccounts] = useState(null);
   const [degenContract, setDegenContract] = useState(null);
   const [bal, setBal] = useState();
+  const [amount, setAmount] = useState();
+  const [transferAddress, setTransferAddress] = useState();
+  const [transAmount, setTransAmount] = useState();
 
   const urls = [
     "https://ipfs.io/ipfs/QmcWWFLLWf4fUwHPbqhJJupvPXUW4p6iS3jUivKiG7H27B", //robot
@@ -63,7 +68,9 @@ export default function Home() {
 
   const ConnectToMetamask = async () => {
     if (ethWindow) {
-      const accounts = ethWindow.request({ method: "eth_requestAccounts" });
+      const accounts = await ethWindow.request({
+        method: "eth_requestAccounts",
+      });
       setAccounts(accounts);
       setConnected(true);
     }
@@ -83,6 +90,7 @@ export default function Home() {
       );
       console.log(degenContract);
       setDegenContract(degenContract);
+      getTokenBalance();
       console.log(degenContract);
     } catch (error) {
       console.log("can't connect with the contract");
@@ -100,27 +108,33 @@ export default function Home() {
     }
   };
 
-  function MintAndBurnInput() {
-    return (
-      <div className=" bg-black text-white grid grid-cols-2 m-10">
-        <form className="grid bg-[#005C78] px-20 py-10  col-start-1 col-end-3 mx-64 rounded-xl">
-          <label className="grid col-start-1 col-end-1 ">
-            Enter the Amount
-          </label>
-          <input
-            className="text-white bg-slate-800 p-5 rounded-md mx-5 my-5"
-            required
-          />
-        </form>
+  const mintTokens = async () => {
+    try {
+      console.log(accounts[0]);
+      if (degenContract) {
+        const res = await degenContract.mintTokenReward(
+          accounts[0],
+          parseInt(amount)
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-        <div className="flex justify-center col-span-2 items-center py-5">
-          <button className="bg-blue-900 p-5 rounded-xl hover:bg-rose-900">
-            Start Minting...
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const transFriend = async () => {
+    try {
+      console.log(accounts[0]);
+      if (degenContract) {
+        const res = await degenContract.tranferTokens(
+          transferAddress,
+          parseInt(transAmount)
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const getImage = (ipfsURL) => {
     const hash = ipfsURL.split("ipfs://")[1];
@@ -130,6 +144,13 @@ export default function Home() {
   function BoughtItems() {
     return (
       <div className="mt-10 col-start-1 col-end-4 bg-opacity-90 p-10 justify-center space-x-8 space-y-5">
+        <hr className="col-start-1 col-end-4 w-full h-1 mx-auto bg-gray-100 border-0 rounded  dark:bg-gray-700" />
+        <div className="flex justify-center mb-5">
+          <p className="text-4xl font-bold bg-gradient-to-r from-lime-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+            Bought NFTs
+          </p>
+        </div>
+        <hr className="col-start-1 col-end-4 w-full h-1 mx-auto bg-gray-100 border-0 rounded  dark:bg-gray-700" />
         {boughtNFT.map((eachItem, index) => (
           <BoughtItem
             key={index}
@@ -149,42 +170,12 @@ export default function Home() {
     );
   }
 
-  function TransferFriend() {
-    return (
-      <div className=" bg-black text-white grid grid-cols-2 m-10">
-        <form className="grid bg-[#005C78] px-20 py-10  col-start-1 col-end-3 mx-64 rounded-xl">
-          <label className="grid col-start-1 col-end-1 ">
-            Enter the Address
-          </label>
-          <input
-            className="text-white bg-slate-800 p-5 rounded-md mx-5 my-5"
-            required
-          />
-          <label className="grid col-start-1 col-end-1 ">
-            Enter the Amount
-          </label>
-          <input
-            className="text-white bg-slate-800 p-5 rounded-md mx-5 my-5"
-            required
-          />
-        </form>
-
-        <div className="flex justify-center col-span-2 items-center py-5">
-          <button className="bg-blue-900 p-5 rounded-xl hover:bg-rose-900">
-            Transfer
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const setFunc = async (data) => {
     setNftCollection(data);
   };
 
   const mintAndBurnTokens = async () => {
     setTransferFriendCondition(false);
-    getTokenBalance();
 
     setmintAndBurnCondition(!mintAndBurnCondition);
   };
@@ -236,7 +227,7 @@ export default function Home() {
       await getTokenBalance();
     }
     Operation();
-  }, [bal]);
+  }, []);
 
   return (
     <div className="bg-black">
@@ -257,7 +248,7 @@ export default function Home() {
             <p> Account Address : 0x161aBA4657174De9a36C3Ee71bC8163118d88d43</p>
           </div>
           <div className="text-xl col-span-3 flex justify-end mr-5">
-            Balance : {bal ? bal : "xxx"} DGN Tokens
+            Balance : {bal !== undefined ? bal : "xxx"} DGN Tokens
           </div>
         </div>
       </div>
@@ -297,8 +288,16 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {mintAndBurnCondition && <MintAndBurnInput />}
-      {transferFriendCondition && <TransferFriend />}
+      {mintAndBurnCondition && (
+        <MintAndBurnInput setAmount={setAmount} mintTokens={mintTokens} />
+      )}
+      {transferFriendCondition && (
+        <TransferFriend
+          setTransAmount={setTransAmount}
+          setTransferAddress={setTransferAddress}
+          transFriend={transFriend}
+        />
+      )}
       {boughtCondition && <BoughtItems />}
 
       <hr className="col-start-1 col-end-4 w-full h-1 mx-auto bg-gray-100 border-0 rounded  dark:bg-gray-700" />
