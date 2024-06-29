@@ -94,6 +94,7 @@ export default function Home() {
       console.log(degenContract);
       setDegenContract(degenContract);
       getTokenBalance();
+      boughtItems();
       console.log(degenContract);
     } catch (error) {
       console.log("can't connect with the contract");
