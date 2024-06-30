@@ -267,7 +267,7 @@ export default function Home() {
             </button>
           </div>
           <div className="text-2xl col-start-1 col-end-1 justify-start ml-5">
-            <p> Account Address : 0x161aBA4657174De9a36C3Ee71bC8163118d88d43</p>
+            <p> Account Address : {accounts ? accounts[0] : "XXX"}</p>
           </div>
           <div className="text-xl col-span-3 flex justify-end mr-5">
             Balance : {bal !== undefined ? bal : "xxx"} DGN Tokens
