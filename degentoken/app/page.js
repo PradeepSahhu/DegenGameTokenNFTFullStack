@@ -5,7 +5,7 @@ import BoughtItem from "./components/BoughtItem";
 import { useState, useEffect } from "react";
 import fetchMultipleData from "./Functionality/ifpsFetch";
 import { ethers } from "ethers";
-import DegenABI from "../artifacts/contracts/DegenTokenGame.sol/DegenERC20.json";
+// import DegenABI from "../artifacts/contracts/DegenTokenGame.sol/DegenERC20.json";
 import IpfsToArray from "./Functionality/resIPFS";
 import MintAndBurnInput from "./components/MintAndBurnInput";
 import TransferFriend from "./components/TransferFriend";
@@ -56,6 +56,8 @@ export default function Home() {
   // }
 
   const contractAddress = "0xD3F2cc1f2912714Ce1c332A40fE0D35f6F53abA9";
+  const DegenABI = process.env.abi;
+  // const contractAddress = "0xFF8C97cC9B8c03Fc402e7C8231Da8ac711Dbd65e";
 
   const initialize = async () => {
     if (window.ethereum) {
@@ -89,7 +91,7 @@ export default function Home() {
       const signer = provider.getSigner();
       const degenContract = new ethers.Contract(
         contractAddress,
-        DegenABI.abi,
+        DegenABI,
         signer
       );
       console.log(degenContract);
